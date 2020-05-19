@@ -6,7 +6,7 @@ from conans.errors import ConanInvalidConfiguration
 
 class SpdlogConan(ConanFile):
     name = "spdlog"
-    version = "1.4.2"
+    version = "2b326e90b82f74492229b8d2b27d66d088386e74"
     description = "Fast C++ logging library"
     url = "https://github.com/bincrafters/conan-spdlog"
     homepage = "https://github.com/gabime/spdlog"
@@ -15,13 +15,19 @@ class SpdlogConan(ConanFile):
     license = "MIT"
     exports = ["LICENSE.md"]
     exports_sources = ["CMakeLists.txt", "patches/*"]
-    generators = "cmake"
+    generators = "cmake", "cmake_find_package"
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True, False], "fPIC": [True, False],
-               "header_only": [True, False], "wchar_support": [True, False],
-               "wchar_filenames": [True, False], "no_exceptions": [True, False]}
-    default_options = {"shared": False, "fPIC": True, "header_only": False,
-                       "wchar_support": False, "wchar_filenames": False,
+    options = {"shared": [True, False],
+               "fPIC": [True, False],
+               "header_only": [True, False], 
+               "wchar_support": [True, False],
+               "wchar_filenames": [True, False],
+               "no_exceptions": [True, False]}
+    default_options = {"shared": False,
+                       "fPIC": True, 
+                       "header_only": False,
+                       "wchar_support": False,
+                       "wchar_filenames": False,
                        "no_exceptions": False}
 
     @property
@@ -46,9 +52,8 @@ class SpdlogConan(ConanFile):
         self.requires("fmt/6.0.0@bincrafters/stable")
 
     def source(self):
-        tools.get("{0}/archive/v{1}.tar.gz".format(self.homepage, self.version))
-        extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        self.run("git clone {0}.git {1}".format(self.homepage, self._source_subfolder))
+        self.run("cd {0} && git checkout {1}".format(self._source_subfolder, self.version))
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -69,7 +74,7 @@ class SpdlogConan(ConanFile):
     def build(self):
         if self.options.header_only:
             tools.patch(base_path=self._source_subfolder,
-                        patch_file=os.path.join("patches", "0001-header-only.patch"))
+                        patch_file=os.path.join("patches", "0003-header-only.patch"), fuzz=True)
         cmake = self._configure_cmake()
         cmake.build()
 
@@ -92,11 +97,10 @@ class SpdlogConan(ConanFile):
                 self.cpp_info.libs = ["spdlogd"]
             
             self.cpp_info.defines = ["SPDLOG_COMPILED_LIB", "SPDLOG_FMT_EXTERNAL"]
+        
         if self.options.wchar_support:
             self.cpp_info.defines.append("SPDLOG_WCHAR_TO_UTF8_SUPPORT")
         if self.options.wchar_filenames:
             self.cpp_info.defines.append("SPDLOG_WCHAR_FILENAMES")
         if self.options.no_exceptions:
             self.cpp_info.defines.append("SPDLOG_NO_EXCEPTIONS")
-        if tools.os_info.is_linux:
-            self.cpp_info.libs.append("pthread")
