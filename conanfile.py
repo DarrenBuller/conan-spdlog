@@ -6,7 +6,7 @@ from conans.errors import ConanInvalidConfiguration
 
 class SpdlogConan(ConanFile):
     name = "spdlog"
-    version = "2b326e90b82f74492229b8d2b27d66d088386e74"
+    version = "2b326e"
     description = "Fast C++ logging library"
     url = "https://github.com/bincrafters/conan-spdlog"
     homepage = "https://github.com/gabime/spdlog"
@@ -49,7 +49,7 @@ class SpdlogConan(ConanFile):
                 raise ConanInvalidConfiguration("wchar is not yet supported under windows")
 
     def requirements(self):
-        self.requires("fmt/6.0.0@bincrafters/stable")
+        self.requires("fmt/6.1.2")
 
     def source(self):
         self.run("git clone {0}.git {1}".format(self.homepage, self._source_subfolder))
